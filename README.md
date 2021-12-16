@@ -7,7 +7,13 @@ iSee同时也是一款SRC挖掘神器，将SRC的资产信息黏贴到文本导�
 ### 用法         
 
           从指定文本中提取资产:   python3 iSee.py -f text.txt
-          指定输出结果保存路径:   python3 iSee.py -f text.txt -o report.txt
+          从FOFA查询结果中提取资产:   python3 iSee.py --fofa
+### 参数  
+          -f        目标文件
+          -o        输出文件路径
+          --fofa    fofa爬虫
+          
+          
 ### Screenshot
 ![image](https://user-images.githubusercontent.com/71172892/146219076-41dd51a2-293d-4fcd-b691-638e1d277921.png)
 ![image](https://user-images.githubusercontent.com/71172892/146219368-59c1643d-54a8-4b31-9403-b487ecea3f0e.png)
