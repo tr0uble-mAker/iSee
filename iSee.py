@@ -1,9 +1,10 @@
 import re
-import os
+import os, sys
 import argparse
+from extender.fofa_spider import *
 
-default_input_path = './text.txt'      # 目标文件的默认路径
-default_output_path = './report.txt'    # 输出结果默认路径
+default_input_path = 'text.txt'      # 目标文件的默认路径
+default_output_path = 'report.txt'    # 输出结果默认路径
 
 def logo():
     print(r'''
@@ -19,7 +20,11 @@ def usage():
     print('''
         用法: 
                 从指定文本中提取资产: python3 iSee.py -f text.txt
-                指定输出结果保存路径: python3 iSee.py -f text.txt -o report.txt
+                从FOFA查询结果中提取资产: python3 iSee.py --fofa
+        参数:    
+                -f          目标文件
+                -o          输出文件路径
+                --fofa      fofa爬虫
     ''')
 
 
@@ -48,7 +53,7 @@ def find_domains(str):                # 解析所有域名
     for domain1 in domains:
         domain_rex = r'('
         topHosts = [
-            '.com', '.la', '.io', '.co', '.info', '.net', '.org', '.me', '.mobi',
+            '.com', '.la', '.io', '.co', '.info', '.net', '.org', '.me', '.mobi', '.cn',
             '.us', '.biz', '.xxx', '.ca', '.co.jp', '.com.cn', '.net.cn', '.site',
             '.org.cn', '.mx', '.tv', '.ws', '.ag', '.com.ag', '.net.ag',
             '.org.ag', '.am', '.asia', '.at', '.be', '.com.br', '.net.br',
@@ -149,12 +154,12 @@ def output(identify_relsult_tuple, output_path):
     print('[+] 识别到 {0} 个ip:'.format(len(ip_list)))
     print('[+] 识别到 {0} 个ip:'.format(len(ip_list)), file=log)
     for ip in ip_list:
-        print('{0}'.format(ip))
+        print('    {0}'.format(ip))
         print('{0}'.format(ip), file=log)
     print('[+] 识别到 {0} 个域名:'.format(len(domain_list)))
     print('[+] 识别到 {0} 个域名:'.format(len(domain_list)), file=log)
     for domain in domain_list:
-        print('{0}'.format(domain))
+        print('    {0}'.format(domain))
         print('{0}'.format(domain), file=log)
     print('[*] 解析到 {0} 个B段:'.format(len(b_dict)))
     print('[*] 解析到 {0} 个B段:'.format(len(b_dict)), file=log)
@@ -179,25 +184,37 @@ def parser():
                                      description='iSee: 一款资产收集和整理工具',
                                      )
     p = parser.add_argument_group('iSee 的参数')
-    p.add_argument("-f", dest='input_path', type=str, help="目标文件路径")
-    p.add_argument("-o", dest='output_path', type=str, help="输出结果保存路径 (默认输出在当前目录下的 report.txt )", default=default_output_path)
+    p.add_argument("-f", "--file", dest='input_path', type=str, help="目标文件路径")
+    p.add_argument("-o", "--output", dest='output_path', type=str, help="输出结果保存路径 (默认输出在当前目录下的 report.txt )", default=default_output_path)
+    p.add_argument("--fofa", dest='fofa_search_key', action='store_true', help="fofa的查询语法")
     args = parser.parse_args()
     return args
 
 
 def main():
     args = parser()
-    if args.input_path != None:
-        if os.path.exists(args.input_path):
-            print('[+] 检测到目标文件 "{0}" !'.format(args.input_path))
-            filter_relsult_dict = filter(args.input_path)
-            identify_relsult_tuple = identify(filter_relsult_dict)
-            output(identify_relsult_tuple, args.output_path)
-            print('\n[+] 结果已保存到 "{0}" 中'.format(args.output_path))
-        else:
-            print('[-] 目标文件 "{0}" 不存在!'.format(args.input_path))
+    current_path = str(os.path.abspath('.'))
+    if args.input_path != None and args.fofa_search_key is False:
+        target_path = os.path.join(current_path, args.input_path)
+        output_path = os.path.join(current_path, args.output_path)
+    elif args.input_path == None and args.fofa_search_key is True:
+        fofa_search_key = str(input('[+] FOFA语法:'))
+        fofa_spider_output = os.path.join(current_path, 'tmp', 'fofa-{0}.txt'.format(time.strftime("%Y-%m-%d-%I-%M-%S")))
+        fofa_spider(fofa_search_key, fofa_spider_output)
+        target_path = fofa_spider_output
+        output_path = os.path.join(current_path, args.output_path)
     else:
         usage()
+        sys.exit()
+    if os.path.exists(target_path):
+        print('\n[+] 开始进行资产分析.....................................')
+        print('[+] 检测到目标文件 "{0}" !'.format(target_path))
+        filter_relsult_dict = filter(target_path)
+        identify_relsult_tuple = identify(filter_relsult_dict)
+        output(identify_relsult_tuple, output_path)
+        print('\n[+] 结果已保存到 "{0}" 中'.format(output_path))
+    else:
+        print('[-] 目标文件 "{0}" 不存在!'.format(target_path))
 
 
 
