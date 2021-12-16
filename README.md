@@ -6,7 +6,7 @@ iSee支持FOFA爬虫模式并能够在fofa搜索结果中提取整理资产信�
      
 ### 用法         
 
-          从指定文本中提取资产:   python3 iSee.py -f text.txt
+          从指定文本中提取资产:       python3 iSee.py -f text.txt
           从FOFA查询结果中提取资产:   python3 iSee.py --fofa          （需要在config.py配置 Authorization 的值）
 ### 参数  
           -f        目标文件
