@@ -19,8 +19,9 @@ def logo():
 def usage():
     print('''
         用法: 
-                从指定文本中提取资产: python3 iSee.py -f text.txt
-                从FOFA查询结果中提取资产: python3 iSee.py --fofa
+                从指定文本中提取资产:        python3 iSee.py -f text.txt
+                从FOFA查询结果中提取资产:    python3 iSee.py --fofa
+                提取资产后自动进行fofa查询:  python3 iSee.py -f text.txt --fofa
         参数:    
                 -f          目标文件
                 -o          输出文件路径
@@ -194,13 +195,31 @@ def parser():
 def main():
     args = parser()
     current_path = str(os.path.abspath('.'))
-    if args.input_path != None and args.fofa_search_key is False:
+    if args.input_path != None and args.fofa_search_key is False:       # 普通过滤模式
         target_path = os.path.join(current_path, args.input_path)
         output_path = os.path.join(current_path, args.output_path)
-    elif args.input_path == None and args.fofa_search_key is True:
+    elif args.input_path == None and args.fofa_search_key is True:      # fofa爬虫模式
         fofa_search_key = str(input('[+] FOFA语法:'))
         fofa_spider_output = os.path.join(current_path, 'tmp', 'fofa-{0}.txt'.format(time.strftime("%Y-%m-%d-%I-%M-%S")))
         fofa_spider(fofa_search_key, fofa_spider_output)
+        target_path = fofa_spider_output
+        output_path = os.path.join(current_path, args.output_path)
+    elif args.input_path != None and args.fofa_search_key is True:      # 提取文本中的ip和域名通过fofa查询后提取整理资产
+        fofa_spider_output = os.path.join(current_path, 'tmp', 'fofa-{0}.txt'.format(time.strftime("%Y-%m-%d-%I-%M-%S")))
+        filter_relsult_dict = filter(args.input_path)
+        identify_relsult_tuple = identify(filter_relsult_dict)
+        fofa_search_key_list = []
+        for ip in identify_relsult_tuple[0]:
+            fofa_search_key = 'ip="{0}"'.format(ip)
+            fofa_search_key_list.append(fofa_search_key)
+        for domain in identify_relsult_tuple[4]:
+            fofa_search_key = '"{0}"'.format(domain)
+            fofa_search_key_list.append(fofa_search_key)
+        for base_domain in identify_relsult_tuple[3]:
+            fofa_search_key = 'domain="{0}"'.format(base_domain)
+            fofa_search_key_list.append(fofa_search_key)
+        for fofa_search_key in fofa_search_key_list:
+            fofa_spider(fofa_search_key, fofa_spider_output, batch=True)
         target_path = fofa_spider_output
         output_path = os.path.join(current_path, args.output_path)
     else:
