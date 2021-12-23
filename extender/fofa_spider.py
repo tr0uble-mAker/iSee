@@ -12,7 +12,7 @@ headers = {
     "Authorization": Authorization
 }
 
-def fofa_spider(search_key, output_path=''):
+def fofa_spider(search_key, output_path='', batch=False):
     if len(Authorization) == 0:
         print('[-] 未检测到 Authorization 的值, 请查看 config.py 是否配置正确 ?')
     else:
@@ -36,16 +36,19 @@ def fofa_spider(search_key, output_path=''):
     stop_page = page_num            # 默认在最大页数结束
     percent = -1
 
-    choice = str(input('[+] 现在开始数据抓取?[Y/n]'))
-    if choice == 'n':
-        sys.exit()
+    if not batch:
+        choice = str(input('[+] 现在开始数据抓取?[Y/n]'))
+        if choice == 'n':
+            sys.exit()
     if platform.system().lower() == 'windows':
         os.system('cls')
     else:
         os.system('clear')
     print('+------------------------------------- FOFA Spider ------------------------------------------')
     print('|                                      Processing...                                        ')
-    for i in range(int(start_page), int(stop_page) + 1):
+
+
+    for i in range(int(start_page), int(stop_page) + 1):        # 爬虫模块
         now = int(i/int(stop_page)*100)
         if now > percent:
             percent = now
